@@ -42,7 +42,7 @@ return {
         ["<M-f>"] = cmp.mapping.scroll_docs(4),
         ["<M-Space>"] = cmp.mapping.complete(), -- show completion suggestions
         ["<M-e>"] = cmp.mapping.abort(),        -- close completion window
-        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+        ["<C-y>"] = cmp.mapping.confirm({ select = false }),
       },
       -- sources for autocompletion
       sources = cmp.config.sources({
@@ -67,7 +67,7 @@ return {
         ["<Tab>"] = cmp.mapping.select_next_item(),
         ["<S-Tab>"] = cmp.mapping.select_prev_item(),
         ["<M-Space>"] = cmp.mapping.complete(),
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
       }),
       sources = {
         { name = "buffer" },
@@ -80,7 +80,7 @@ return {
         ["<Tab>"] = cmp.mapping.select_next_item(),
         ["<S-Tab>"] = cmp.mapping.select_prev_item(),
         ["<M-Space>"] = cmp.mapping.complete(),
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
       }),
       sources = cmp.config.sources({
         { name = "path" },
