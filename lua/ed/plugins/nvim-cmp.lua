@@ -42,7 +42,8 @@ return {
         ["<M-f>"] = cmp.mapping.scroll_docs(4),
         ["<M-Space>"] = cmp.mapping.complete(), -- show completion suggestions
         ["<M-e>"] = cmp.mapping.abort(),        -- close completion window
-        ["<C-CR>"] = cmp.mapping.confirm({ select = false }),
+        ["<CR>"] = cmp.mapping.confirm({ select = false }), -- only confirm if explicitly selected
+        ["<C-CR>"] = cmp.mapping.confirm({ select = true }), -- confirm first item if none selected
       },
       -- sources for autocompletion
       sources = cmp.config.sources({
