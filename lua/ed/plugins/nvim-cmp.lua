@@ -36,13 +36,31 @@ return {
         end,
       },
       mapping = {
-        ["<Tab>"] = cmp.mapping.select_next_item(),   -- next suggestion
-        ["<S-Tab>"] = cmp.mapping.select_prev_item(), -- previous suggestion
+        ["<Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
         ["<M-b>"] = cmp.mapping.scroll_docs(-4),
         ["<M-f>"] = cmp.mapping.scroll_docs(4),
         ["<M-Space>"] = cmp.mapping.complete(), -- show completion suggestions
         ["<M-e>"] = cmp.mapping.abort(),        -- close completion window
-        ["<CR>"] = cmp.mapping.confirm({ select = false }), -- only confirm if explicitly selected
+        ["<CR>"] = cmp.mapping(function(fallback)
+          if cmp.visible() and cmp.get_active_entry() then
+            cmp.confirm({ select = false })
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
       },
       -- sources for autocompletion
       sources = cmp.config.sources({
