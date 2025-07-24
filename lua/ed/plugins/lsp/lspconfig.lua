@@ -1,153 +1,118 @@
 return {
-  "VonHeikemen/lsp-zero.nvim",
-  branch = "v2.x",
+  "neovim/nvim-lspconfig",
   dependencies = {
-    -- LSP Support
-    { "neovim/nvim-lspconfig" }, -- Required
-    {                            -- Optional
-      "williamboman/mason.nvim",
-      build = function()
-        pcall(vim.cmd, "MasonUpdate")
-      end,
-    },
-    { "williamboman/mason-lspconfig.nvim" }, -- Optional
-    { "pmizio/typescript-tools.nvim" }, -- TypeScript support
-
-    -- Autocompletion
-    { "hrsh7th/nvim-cmp" },     -- Required
-    { "hrsh7th/cmp-nvim-lsp" }, -- Required
-    { "L3MON4D3/LuaSnip" },     -- Required
-    { "rafamadriz/friendly-snippets" },
-    { "hrsh7th/cmp-buffer" },
-    { "hrsh7th/cmp-path" },
-    { "hrsh7th/cmp-cmdline" },
-    { "saadparwaiz1/cmp_luasnip" },
+    { "williamboman/mason.nvim",          build = ":MasonUpdate" },
+    { "williamboman/mason-lspconfig.nvim" },
   },
   config = function()
-    local lsp = require("lsp-zero")
-
-    -- Configure diagnostics
-    vim.diagnostic.config({
-      virtual_text = {
-        prefix = "●",
-        source = true,
-      },
-      float = {
-        source = true,
-        border = "rounded",
-        header = "",
-        prefix = "",
-      },
-      signs = true,
-      underline = true,
-      update_in_insert = false,
-      severity_sort = true,
-    })
-
-    lsp.on_attach(function(client, bufnr)
-      local opts = { buffer = bufnr, remap = false }
-
-      vim.keymap.set("n", "gr", function() vim.lsp.buf.references() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Goto Reference" }))
-      vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Goto Definition" }))
-      vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Hover" }))
-      vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Workspace Symbol" }))
-      vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end,
-        vim.tbl_deep_extend("force", opts, { desc = "Show Diagnostic Float" }))
-      vim.keymap.set("n", "<leader>vl", function() vim.diagnostic.setloclist() end,
-        vim.tbl_deep_extend("force", opts, { desc = "Show Diagnostics List" }))
-      vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end,
-        vim.tbl_deep_extend("force", opts, { desc = "Previous Diagnostic" }))
-      vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end,
-        vim.tbl_deep_extend("force", opts, { desc = "Next Diagnostic" }))
-      vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Code Action" }))
-      vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP References" }))
-      vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Rename" }))
-      vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end,
-        vim.tbl_deep_extend("force", opts, { desc = "LSP Signature Help" }))
-    end)
-
-    require("mason").setup({
-      ui = {
-        border = "rounded",
-        icons = {
-          package_installed = "✓",
-          package_pending = "➜",
-          package_uninstalled = "✗",
-        },
-      },
-    })
-
-    -- Setup typescript-tools first
-    require("typescript-tools").setup({
-      settings = {
-        separate_diagnostic_server = true,
-        publish_diagnostic_on = "insert_leave",
-        expose_as_code_action = {
-          "fix_all",
-          "add_missing_imports",
-          "remove_unused",
-        },
-        import_on_completion = true,
-        inlay_hints = {
-          parameter_hints = true,
-          type_hints = true,
-          variable_type_hints = true,
-        },
-        tsserver_file_preferences = {
-          importModuleSpecifierPreference = "relative",
-          includeInlayParameterNameHints = "all",
-          includeInlayEnumMemberValueHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayVariableTypeHints = true,
-        },
-      },
-    })
-
+    require("mason").setup()
     require("mason-lspconfig").setup({
       ensure_installed = {
-        "eslint",
-        "lua_ls",
-        "jsonls",
-        "html",
-        "cssls",
-        "tailwindcss",
+        "ts_ls",
+        "tailwindcss", -- 正确的 mason 包名
+        "eslint",      -- 正确的 mason 包名
         "pylsp",
+        "jdtls",
         "bashls",
-        "marksman",
+        "lua_ls",
       },
-      handlers = {
-        lsp.default_setup,
-        lua_ls = function()
-          local lua_opts = lsp.nvim_lua_ls()
-          require("lspconfig").lua_ls.setup(lua_opts)
-        end,
-        -- Configure ESLint
-        eslint = function()
-          require("lspconfig").eslint.setup({
-            on_attach = function(client, bufnr)
-              vim.api.nvim_create_autocmd("BufWritePre", {
-                buffer = bufnr,
-                command = "EslintFixAll",
-              })
-            end,
-            settings = {
-              workingDirectory = { mode = "auto" },
-              format = { enable = true },
-              lint = { enable = true },
+      automatic_installation = true,
+    })
+
+    local lspconfig = require("lspconfig")
+
+    -- TypeScript/JavaScript Language Server
+    lspconfig.ts_ls.setup({})
+
+    -- Tailwind CSS Language Server
+    lspconfig.tailwindcss.setup({
+      filetypes = {
+        "html",
+        "css",
+        "scss",
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+        "svelte",
+        "astro",
+        "php",
+        "markdown",
+      },
+      settings = {
+        tailwindCSS = {
+          experimental = {
+            classRegex = {
+              -- 支持更多的 class 匹配模式
+              "class[:]\\s*['\"`]([^'\"`]*)['\"`]",
+              "class[:]\\s*[{]([^}]*)[}]",
+              "tw[`]([^`]*)[`]",
+              "tw\\.\\w+[`]([^`]*)[`]",
+              "tw\\(.*?\\)[`]([^`]*)[`]",
+              { "clsx\\(([^)]*)\\)",       "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+              { "classnames\\(([^)]*)\\)", "'([^']*)'" },
+              { "cva\\(([^)]*)\\)",        "[\"'`]([^\"'`]*).*?[\"'`]" },
+              { "cn\\(([^)]*)\\)",         "(?:'|\"|`)([^'\"`]*)(?:'|\"|`)" },
             },
-          })
-        end,
+          },
+          validate = true,
+          lint = {
+            cssConflict = "warning",
+            invalidApply = "error",
+            invalidConfigPath = "error",
+            invalidScreen = "error",
+            invalidTailwindDirective = "error",
+            invalidVariant = "error",
+            recommendedVariantOrder = "warning",
+          },
+        },
+      },
+      root_dir = function(fname)
+        return require("lspconfig.util").root_pattern(
+          "tailwind.config.js",
+          "tailwind.config.cjs",
+          "tailwind.config.mjs",
+          "tailwind.config.ts",
+          "postcss.config.js",
+          "postcss.config.cjs",
+          "postcss.config.mjs",
+          "postcss.config.ts",
+          "package.json",
+          "node_modules",
+          ".git"
+        )(fname)
+      end,
+    })
+
+    -- ESLint Language Server
+    lspconfig.eslint.setup({
+      settings = {
+        workingDirectories = { mode = "auto" },
       },
     })
 
+    -- Python Language Server
+    lspconfig.pylsp.setup({})
+
+    -- Java Language Server
+    lspconfig.jdtls.setup({})
+
+    -- Bash Language Server
+    lspconfig.bashls.setup({})
+
+    -- Lua Language Server
+    lspconfig.lua_ls.setup({
+      settings = {
+        Lua = {
+          diagnostics = { globals = { "vim" } },
+          workspace = {
+            library = vim.api.nvim_get_runtime_file("", true),
+            checkThirdParty = false,
+          },
+          telemetry = { enable = false },
+        },
+      },
+    })
   end,
 }
