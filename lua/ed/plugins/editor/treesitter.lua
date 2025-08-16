@@ -30,6 +30,10 @@ return {
         "gitignore",
         "query",
         "c",
+        "go",
+        "gomod",
+        "gosum",
+        "rust",
       },
       incremental_selection = {
         enable = true,

@@ -9,12 +9,9 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = {
         "ts_ls",
-        "tailwindcss", -- 正确的 mason 包名
-        "eslint",      -- 正确的 mason 包名
-        "pylsp",
-        "jdtls",
+        "tailwindcss",
+        "gopls",
         "bashls",
-        "lua_ls",
       },
       automatic_installation = true,
     })
@@ -26,37 +23,10 @@ return {
 
     -- Tailwind CSS Language Server
     lspconfig.tailwindcss.setup({
-      filetypes = {
-        "html",
-        "css",
-        "scss",
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact",
-        "vue",
-        "svelte",
-        "astro",
-        "php",
-        "markdown",
-      },
+      filetypes = { "html", "css", "scss", "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte" },
       settings = {
         tailwindCSS = {
-          experimental = {
-            classRegex = {
-              -- 支持更多的 class 匹配模式
-              "class[:]\\s*['\"`]([^'\"`]*)['\"`]",
-              "class[:]\\s*[{]([^}]*)[}]",
-              "tw[`]([^`]*)[`]",
-              "tw\\.\\w+[`]([^`]*)[`]",
-              "tw\\(.*?\\)[`]([^`]*)[`]",
-              { "clsx\\(([^)]*)\\)",       "(?:'|\"|`)([^']*)(?:'|\"|`)" },
-              { "classnames\\(([^)]*)\\)", "'([^']*)'" },
-              { "cva\\(([^)]*)\\)",        "[\"'`]([^\"'`]*).*?[\"'`]" },
-              { "cn\\(([^)]*)\\)",         "(?:'|\"|`)([^'\"`]*)(?:'|\"|`)" },
-            },
-          },
-          validate = true,
+          classAttributes = { "class", "className", "class:list", "classList", "ngClass" },
           lint = {
             cssConflict = "warning",
             invalidApply = "error",
@@ -64,55 +34,44 @@ return {
             invalidScreen = "error",
             invalidTailwindDirective = "error",
             invalidVariant = "error",
-            recommendedVariantOrder = "warning",
+            recommendedVariantOrder = "warning"
           },
+          validate = true
+        }
+      }
+    })
+
+    -- ESLint Language Server (only for projects with config files)
+    lspconfig.eslint.setup({
+      settings = {
+        workingDirectories = { mode = "auto" },
+        codeActionOnSave = {
+          enable = true,
+          mode = "all"
         },
+        format = true,
+        quiet = false,
+        onIgnoredFiles = "off"
       },
+      on_attach = function(client, bufnr)
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          command = "EslintFixAll",
+        })
+      end,
       root_dir = function(fname)
-        return require("lspconfig.util").root_pattern(
-          "tailwind.config.js",
-          "tailwind.config.cjs",
-          "tailwind.config.mjs",
-          "tailwind.config.ts",
-          "postcss.config.js",
-          "postcss.config.cjs",
-          "postcss.config.mjs",
-          "postcss.config.ts",
-          "package.json",
-          "node_modules",
-          ".git"
+        -- Only activate if config files exist (no fallback)
+        return lspconfig.util.root_pattern(
+          "eslint.config.js",
+          "eslint.config.mjs",
+          "eslint.config.cjs",
+          ".eslintrc.js",
+          ".eslintrc.json",
+          ".eslintrc",
+          "package.json"
         )(fname)
       end,
     })
 
-    -- ESLint Language Server
-    lspconfig.eslint.setup({
-      settings = {
-        workingDirectories = { mode = "auto" },
-      },
-    })
-
-    -- Python Language Server
-    lspconfig.pylsp.setup({})
-
-    -- Java Language Server
-    lspconfig.jdtls.setup({})
-
-    -- Bash Language Server
-    lspconfig.bashls.setup({})
-
-    -- Lua Language Server
-    lspconfig.lua_ls.setup({
-      settings = {
-        Lua = {
-          diagnostics = { globals = { "vim" } },
-          workspace = {
-            library = vim.api.nvim_get_runtime_file("", true),
-            checkThirdParty = false,
-          },
-          telemetry = { enable = false },
-        },
-      },
-    })
   end,
 }
