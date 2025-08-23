@@ -48,7 +48,7 @@ return {
     config = function()
       require("zen-mode").setup({})
 
-      vim.keymap.set("n", "<leader>z", function()
+      vim.keymap.set("n", "<leader>zz", function()
         require("zen-mode").toggle()
       end, { noremap = true, silent = true, desc = "Toggle Zen Mode with Twilight" })
     end,

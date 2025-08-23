@@ -18,11 +18,27 @@ return {
 
     local lspconfig = require("lspconfig")
 
+    -- Common on_attach function for all LSP servers
+    local on_attach = function(client, bufnr)
+      local keymap = vim.keymap.set
+      local opts = { buffer = bufnr, silent = true }
+      
+      keymap("n", "gd", vim.lsp.buf.definition, opts)
+      keymap("n", "gD", vim.lsp.buf.declaration, opts) 
+      keymap("n", "gr", vim.lsp.buf.references, opts)
+      keymap("n", "K", vim.lsp.buf.hover, opts)
+      keymap("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+      keymap("n", "<leader>rn", vim.lsp.buf.rename, opts)
+    end
+
     -- TypeScript/JavaScript Language Server
-    lspconfig.ts_ls.setup({})
+    lspconfig.ts_ls.setup({
+      on_attach = on_attach,
+    })
 
     -- Tailwind CSS Language Server
     lspconfig.tailwindcss.setup({
+      on_attach = on_attach,
       filetypes = { "html", "css", "scss", "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte" },
       settings = {
         tailwindCSS = {
@@ -54,6 +70,10 @@ return {
         onIgnoredFiles = "off"
       },
       on_attach = function(client, bufnr)
+        -- Apply common LSP keymaps
+        on_attach(client, bufnr)
+        
+        -- ESLint-specific autocmd
         vim.api.nvim_create_autocmd("BufWritePre", {
           buffer = bufnr,
           command = "EslintFixAll",
@@ -71,6 +91,16 @@ return {
           "package.json"
         )(fname)
       end,
+    })
+
+    -- Go Language Server
+    lspconfig.gopls.setup({
+      on_attach = on_attach,
+    })
+
+    -- Bash Language Server
+    lspconfig.bashls.setup({
+      on_attach = on_attach,
     })
 
   end,
